@@ -413,6 +413,7 @@ public class CaptureChangePostgreSQL extends AbstractProcessor {
             context.yield();
             this.closeQueryConnection();
             this.closeReplicationConnection();
+            this.replicationReader = null;
             throw new ProcessException(e.getMessage(), e);
         }
     }
