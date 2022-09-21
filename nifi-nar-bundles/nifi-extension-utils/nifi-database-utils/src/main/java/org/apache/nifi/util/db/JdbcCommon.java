@@ -338,10 +338,14 @@ public class JdbcCommon {
                     if (value == null) {
                         rec.put(i - 1, null);
 
-                    } else if (javaSqlType == BINARY || javaSqlType == VARBINARY || javaSqlType == LONGVARBINARY || javaSqlType == ARRAY) {
+                    } else if (javaSqlType == BINARY || javaSqlType == VARBINARY || javaSqlType == LONGVARBINARY) {
                         // bytes requires little bit different handling
                         byte[] bytes = rs.getBytes(i);
                         ByteBuffer bb = ByteBuffer.wrap(bytes);
+                        rec.put(i - 1, bb);
+                    } else if (javaSqlType == ARRAY) {
+                        byte[] bytes = rs.getBytes(i);
+                        String bb = new String(bytes, "UTF-8");
                         rec.put(i - 1, bb);
                     } else if (javaSqlType == 100) { // Handle Oracle BINARY_FLOAT data type
                         rec.put(i - 1, rs.getFloat(i));
@@ -645,12 +649,12 @@ public class JdbcCommon {
                 case BINARY:
                 case VARBINARY:
                 case LONGVARBINARY:
-                case ARRAY:
                 case BLOB:
                     builder.name(columnName).type().unionOf().nullBuilder().endNull().and().bytesType().endUnion().noDefault();
                     break;
-
-
+                case ARRAY:
+                    builder.name(columnName).type().unionOf().nullBuilder().endNull().and().stringType().endUnion().noDefault();
+                    break;
                 default:
                     throw new IllegalArgumentException("createSchema: Unknown SQL type " + meta.getColumnType(i) + " / " + meta.getColumnTypeName(i)
                             + " (table: " + tableName + ", column: " + columnName + ") cannot be converted to Avro type");
